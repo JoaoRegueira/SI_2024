@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,22 +37,22 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 
 public class mySNS {
-	
+
 	public static boolean ReadFileVerifySign (PublicKey pk, byte[] signature, byte[] dataSigned) {
 
 		try {
-			
+
 			Signature s = Signature.getInstance("SHA256withRSA");
 			s.initVerify(pk);
 			s.update(dataSigned);
-			
+
 			if (s.verify(signature)) {
 				System.out.println("Message is valid");
 				return true;
 			}
 			else
 				System.out.println("Message was corrupted");
-			
+
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -64,10 +63,10 @@ public class mySNS {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
-	
+
 	public static void decryptFile(String fileToDecrypt, SecretKey sk, String finalNameFile) {
 
 		try {
@@ -112,45 +111,45 @@ public class mySNS {
 		}
 
 	}
-	
+
 	public static SecretKey convertStringToSecretKeyto(String encodedKey) {
-	    byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-	    SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-	    return originalKey;
+		byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+		SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+		return originalKey;
 	}
-	
+
 	public static byte[] readFileToBytes(String filePath, int l) throws IOException {
 
-	      File file = new File(filePath);
-	      byte[] bytes = new byte[l];
+		File file = new File(filePath);
+		byte[] bytes = new byte[l];
 
-	      FileInputStream fis = null;
-	      try {
+		FileInputStream fis = null;
+		try {
 
-	          fis = new FileInputStream(file);
+			fis = new FileInputStream(file);
 
-	          //read file into bytes[]
-	          fis.read(bytes);
+			//read file into bytes[]
+			fis.read(bytes);
 
-	      } finally {
-	          if (fis != null) {
-	              fis.close();
-	              return bytes;
-	          }
-	      }
+		} finally {
+			if (fis != null) {
+				fis.close();
+				return bytes;
+			}
+		}
 		return bytes;
 
-	  }
-	
+	}
+
 	public static byte[] decrypt(byte[] data, PrivateKey privateKey) {
 
 		try {
-			
+
 			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
-	        byte[] sk = cipher.doFinal(data);
-	        return sk;
-	        
+			byte[] sk = cipher.doFinal(data);
+			return sk;
+
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -167,9 +166,9 @@ public class mySNS {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-        return null;
-    }
+
+		return null;
+	}
 
 	public static void cipherSecretKey(SecretKey key, PublicKey pk, File f) {
 
@@ -217,7 +216,7 @@ public class mySNS {
 
 		System.out.println("   cipherSecretKey: Função terminada.");
 	}
-	
+
 	public static void cipherFile(SecretKey key, File f) {
 
 		System.out.println();
@@ -436,294 +435,58 @@ public class mySNS {
 		}
 		System.out.println("   receiveFile: Função Terminada");
 	}
-	
+
 	public static String BytetoHex(byte[] arrayB) {
 
-        String HexString = "";
-        for (byte b : arrayB) {
-            String st = String.format("%02X", b);
-            HexString += st;
-        }
-
-        return HexString;
-    }
-	
-	public static void commandC(String fileName, String format, ObjectOutputStream oS, Socket socket, SecretKey sk, PublicKey publicKey) {
-
-		try {
-
-			File f = new File(fileName);
-
-			if (f.exists()) {
-
-				cipherFile(sk, f);
-				cipherSecretKey(sk, publicKey, f);
-				String cipherFileName;
-				String secretFileFileName;
-				
-				if (!format.equals("")) {
-					cipherFileName = fileName+".cifrado."+format;
-					secretFileFileName = fileName+".chave_secreta."+format;
-					
-				} else {
-					cipherFileName = fileName+".cifrado";
-					secretFileFileName = fileName+".chave_secreta";
-				}
-
-				//Enviar ficheiro cifrado
-				f = new File(fileName+".cifrado");
-
-				oS.writeObject(cipherFileName);
-				oS.writeObject(String.valueOf(f.length()));
-
-				InputStream in = new FileInputStream(f);
-				OutputStream out = socket.getOutputStream();
-
-				sendFile(in, out);
-				//Ficheiro cifrado enviado
-
-				//Enviar chave secreta
-				oS.writeObject("-c");
-
-				f = new File(fileName+".chave_secreta");
-
-				oS.writeObject(secretFileFileName);
-				oS.writeObject(String.valueOf(f.length()));
-
-				in = new FileInputStream(f);
-
-				sendFile(in, out);
-				//Chave secreta enviada
-
-				System.out.println("mySNS: Enviado ficheiro cifrado, chave secreta");
-
-			} else {
-				System.out.println("mySNS: Ficheiro não existe");
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		String HexString = "";
+		for (byte b : arrayB) {
+			String st = String.format("%02X", b);
+			HexString += st;
 		}
 
-
-	}
-
-	public static void commandS(String fileName, String format, ObjectOutputStream oS, Socket socket , PrivateKey privateKey) {
-		
-		String sigantureFileName;
-		String signedFileFileName;
-		
-		if (!format.equals("")) {
-			sigantureFileName = fileName+".assinatura."+format;
-			signedFileFileName = fileName+".assinado."+format;
-			
-		} else {
-			sigantureFileName = fileName+".assinatura";
-			signedFileFileName = fileName+".assinado";
-		}
-		
-		File f = new File(fileName);
-
-		if (f.exists()) {
-
-
-			try {
-				criaAssinatura(fileName, privateKey);
-
-				//Enviar ficheiro assinado
-				f = new File(fileName+".assinado");
-				oS.writeObject(signedFileFileName);
-				oS.writeObject(String.valueOf(f.length()));
-
-				InputStream in = new FileInputStream(f);
-				OutputStream out = socket.getOutputStream();
-
-				sendFile(in, out);
-				//Ficheiro assinado enviado
-
-
-				//Enviar assinatura
-				oS.writeObject("-s");
-
-				f = new File(fileName+".assinatura");
-
-				oS.writeObject(sigantureFileName);
-				oS.writeObject(String.valueOf(f.length()));
-
-				in = new FileInputStream(f);
-
-				sendFile(in, out);
-				//Assinatura enviada
-
-				System.out.println("mySNS: Enviado ficheiro assinado e assinatura");
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-
-		} else {
-
-			System.out.println("mySNS: Ficheiro não existe");
-
-		}
-	}
-
-	public static void commandE(String fileName, ObjectOutputStream oS, Socket socket, PrivateKey privateKey, SecretKey sk, PublicKey publicKey) {
-		File f = new File(fileName);
-
-		if (f.exists()) {
-
-			criaAssinatura(fileName, privateKey);
-			f = new File(fileName+".assinado");
-			cipherFile(sk, f);
-			cipherSecretKey(sk, publicKey, f);
-			
-			try {
-				Files.deleteIfExists(Paths.get(fileName+".assinado"));
-				//Enviar ficheiro assinado/cifrado
-				f = new File(fileName+".assinado.cifrado");
-
-				oS.writeObject(f.getName());
-				oS.writeObject(String.valueOf(f.length()));
-
-				InputStream in = new FileInputStream(f);
-				OutputStream out = socket.getOutputStream();
-
-				sendFile(in, out);
-				//Ficheiro assinado/cifrado enviado
-
-
-				//Enviar assinatura
-				oS.writeObject("-e");
-
-				f = new File(fileName+".assinatura");
-
-				oS.writeObject(f.getName());
-				oS.writeObject(String.valueOf(f.length()));
-
-				in = new FileInputStream(f);
-
-				sendFile(in, out);
-				//Assinatura enviada
-
-
-				//Enviar chave secreta
-				oS.writeObject("-e");
-
-				f = new File(fileName+".assinado.chave_secreta");
-
-				oS.writeObject(f.getName());
-				oS.writeObject(String.valueOf(f.length()));
-
-				in = new FileInputStream(f);
-
-				sendFile(in, out);
-				//Chave secreta enviada
-
-				System.out.println("mySNS: Enviado ficheiro assinado/cifrado, chave secreta e assinatura");
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		} else {
-
-			System.out.println("mySNS: Ficheiro não existe");
-
-		}
+		return HexString;
 	}
 
 	public static void main(String[] args) throws UnrecoverableKeyException, InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
-		//System.setProperty("javax.net.ssl.trustStore", "truststore.client");
-		//System.setProperty("javax.net.ssl.trustStorePassword", "amora1337");
-		//SocketFactory sf = SSLSocketFactory.getDefault();
 
 		if (args.length < 2) return;
 
 		String hostname = null;
 		int port = 0;
-		
+
 		String medico = "";
 		String utente = "";
 
 		if (args[0].equals("-a")) {
-			
+
 			//Extrair IP e Porto do Servidor
 			String[] address = args[1].split(":");
 			hostname = address[0];
 			port = Integer.parseInt(address[1]);
-			
+
 			String userCommand = args[4];
 
 			try {
-				
+
 				if (args[2].equals("-m")) {
 					medico = args[3];
+				} else {
+					System.out.println("mySNS: Comando -m não detetado");
+					return;
 				}
-				
+
 				if (args[4].equals("-u")) {
 					utente = args[5];
+				} else {
+					System.out.println("mySNS: Comando -u não detetado");
+					return;
 				}
-				
-				if (userCommand.equals("-au")) {
-					/*
-					//Extrair nomes de utilizador, password e certificado
-					String username = args[3];
-					String password = args[4];
-					String certName = args[5];
 
-					//Socket socket = new sf.createSocket(hostname, port);
-					Socket socket = sf.createSocket(hostname, port);
+				if (userCommand.equals("-u")) {
 
-					//Socket socket = new Socket(hostname, port);
-					ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
-					ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-					
-					
-					byte[] passwordSint = MessageDigest.getInstance("SHA-256").digest(password.getBytes()); //Encripts user password
-					String passHash = BytetoHex(passwordSint);
-					
-					
-					//Envia User e password do cliente
-					outStream.writeObject(userCommand);
-					outStream.writeObject(username);
-					outStream.writeObject(passHash);
-					
-					//Enviar certificado
-					File f = new File(username+".cer");
 
-					outStream.writeObject(f.getName());
-					outStream.writeObject(String.valueOf(f.length()));
-
-					InputStream in = new FileInputStream(f);
-					OutputStream out = socket.getOutputStream();
-
-					sendFile(in, out);
-					//certificado enviado
-					
-					socket.close();
-					*/
-					
-				} else if (userCommand.equals("-u")) {
-					
-					/*
-					//extrair nome de utilizador, password e comando
-					String username = args[3];
-					String password = args[5];
-					String command = args[6];
-					
-					System.out.println(username);
-					System.out.println(password);
-					System.out.println(command);
-					*/
-					
-					//File RSAKeyStore = new File("keystore.SI030Cloud");
-					//KeyPair kp = createRSAkey();
 					SecretKey sk = secretKeyMaker();
-					
+
 					//keystore
 					InputStream inputStream = new FileInputStream("keystore.userCloud");
 					KeyStore kstore = KeyStore.getInstance("PKCS12");
@@ -731,35 +494,24 @@ public class mySNS {
 
 					//Chave Privada
 					PrivateKey privateKey = (PrivateKey) kstore.getKey(medico, "admin123".toCharArray());
-					//System.out.println(privateKey);
 
 					//Chave Publica
 					Certificate cert = (Certificate) kstore.getCertificate(medico);
 					PublicKey publicKey = cert.getPublicKey();
 					//System.out.println(publicKey);
-					
-					//Socket socket = new Socket(hostname, port);
-					Socket socket = new Socket(hostname, port);// sf.createSocket(hostname, port);
+
+					Socket socket = new Socket(hostname, port);
 					ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 					ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
 
-					/*
-					byte[] passwordSint = MessageDigest.getInstance("SHA-256").digest(password.getBytes()); //Encripts user password
-					String passHash = BytetoHex(passwordSint);
-					
-					
-					//Envia User e password do cliente
-					outStream.writeObject(userCommand);
-					outStream.writeObject(username);
-					outStream.writeObject(passHash);
-					*/
-					
 					String command = args[6];
-					
+
 					outStream.writeObject(userCommand);
 					outStream.writeObject(utente);
-					
-					if ( /* userCommand.equals("-u") && */ command.equals("-sc")) {
+					outStream.writeObject(medico);
+
+
+					if (command.equals("-sc")) {
 
 						System.out.println("mySNS: Comando -sc reconhecido");
 
@@ -781,29 +533,35 @@ public class mySNS {
 								outStream.writeObject(f.getName());
 								outStream.writeObject(String.valueOf(f.length()));
 
-								InputStream in = new FileInputStream(f);
-								OutputStream out = socket.getOutputStream();
+								if ((inStream.readObject()).equals("False")) {
 
-								sendFile(in, out);
-								//Ficheiro cifrado enviado
+									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
 
-								//Enviar chave secreta
-								outStream.writeObject("-sc");
+								} else {
 
-								f = new File(args[i]+".chave_secreta");
-								f.renameTo(renomear);
+									InputStream in = new FileInputStream(f);
+									OutputStream out = socket.getOutputStream();
 
-								outStream.writeObject(renomear.getName());
-								outStream.writeObject(String.valueOf(renomear.length()));
+									sendFile(in, out);
+									//Ficheiro cifrado enviado
 
-								in = new FileInputStream(renomear);
+									//Enviar chave secreta
+									outStream.writeObject("-sc");
 
-								sendFile(in, out);
-								//Chave secreta enviada
+									f = new File(args[i]+".chave_secreta");
+									f.renameTo(renomear);
 
-								System.out.println("mySNS: Enviado ficheiro cifrado, chave secreta");
-								
-								//outStream.writeObject("Over and out");
+									outStream.writeObject(renomear.getName());
+									outStream.writeObject(String.valueOf(renomear.length()));
+
+									in = new FileInputStream(renomear);
+
+									sendFile(in, out);
+									//Chave secreta enviada
+
+									System.out.println("mySNS: Enviado ficheiro cifrado, chave secreta");
+
+								}
 
 							} else {
 								System.out.println("mySNS: Ficheiro não existe");
@@ -813,7 +571,7 @@ public class mySNS {
 						outStream.writeObject("Done");
 						socket.close();
 
-					} else if (/* userCommand.equals("-u") && */ command.equals("-sa")) {
+					} else if (command.equals("-sa")) {
 
 						System.out.println("mySNS: Comando -sa reconhecido");
 
@@ -828,37 +586,41 @@ public class mySNS {
 
 								criaAssinatura(args[i], privateKey);
 
-
-								//Enviar ficheiro assinado
 								f = new File(args[i]+".assinado");
 
 								outStream.writeObject(f.getName());
 								outStream.writeObject(String.valueOf(f.length()));
 
-								InputStream in = new FileInputStream(f);
-								OutputStream out = socket.getOutputStream();
+								if ((inStream.readObject()).equals("False")) {
 
-								sendFile(in, out);
-								//Ficheiro assinado enviado
+									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
+
+								} else {
+
+									//Enviar ficheiro assinado
+									InputStream in = new FileInputStream(f);
+									OutputStream out = socket.getOutputStream();
+
+									sendFile(in, out);
+									//Ficheiro assinado enviado
 
 
-								//Enviar assinatura
-								outStream.writeObject("-sa");
+									//Enviar assinatura
+									outStream.writeObject("-sa");
 
-								f = new File(args[i]+".assinatura");
-								f.renameTo(renomear);
-								
-								outStream.writeObject(renomear.getName());
-								outStream.writeObject(String.valueOf(renomear.length()));
+									f = new File(args[i]+".assinatura");
+									f.renameTo(renomear);
 
-								in = new FileInputStream(renomear);
+									outStream.writeObject(renomear.getName());
+									outStream.writeObject(String.valueOf(renomear.length()));
 
-								sendFile(in, out);
-								//Assinatura enviada
+									in = new FileInputStream(renomear);
 
-								System.out.println("mySNS: Enviado ficheiro assinado e assinatura");
-								
-								//outStream.writeObject("Over and out");
+									sendFile(in, out);
+									//Assinatura enviada
+
+									System.out.println("mySNS: Enviado ficheiro assinado e assinatura");
+								}
 
 							} else {
 
@@ -870,7 +632,7 @@ public class mySNS {
 						outStream.writeObject("Done");
 						socket.close();
 
-					} else if (/*userCommand.equals("-u") &&*/ command.equals("-se")) {
+					} else if (command.equals("-se")) {
 
 						System.out.println("mySNS: Comando -se reconhecido.");
 
@@ -892,54 +654,60 @@ public class mySNS {
 								Files.deleteIfExists(Paths.get(args[i]+".assinado"));
 
 
-								//Enviar ficheiro assinado/cifrado
+
 								f = new File(args[i]+".assinado.cifrado");
 								f.renameTo(renomearSeguro);
 
 								outStream.writeObject(renomearSeguro.getName());
 								outStream.writeObject(String.valueOf(renomearSeguro.length()));
 
-								InputStream in = new FileInputStream(renomearSeguro);
-								OutputStream out = socket.getOutputStream();
+								if ((inStream.readObject()).equals("False")) {
 
-								sendFile(in, out);
-								//Ficheiro assinado/cifrado enviado
+									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
+
+								} else {
+
+									//Enviar ficheiro assinado/cifrado
+									InputStream in = new FileInputStream(renomearSeguro);
+									OutputStream out = socket.getOutputStream();
+
+									sendFile(in, out);
+									//Ficheiro assinado/cifrado enviado
+
+									//Enviar assinatura
+									outStream.writeObject("-se");
+
+									f = new File(args[i]+".assinatura");
+									f.renameTo(renomearAssinatura);
+
+									outStream.writeObject(renomearAssinatura.getName());
+									outStream.writeObject(String.valueOf(renomearAssinatura.length()));
+
+									in = new FileInputStream(renomearAssinatura);
+
+									sendFile(in, out);
+									//Assinatura enviada
+
+									//Enviar chave secreta
+									outStream.writeObject("-se");
+
+									f = new File(args[i]+".assinado.chave_secreta");
+									f.renameTo(renomearChaveSecreta);
+
+									outStream.writeObject(renomearChaveSecreta.getName());
+									outStream.writeObject(String.valueOf(renomearChaveSecreta.length()));
+
+									in = new FileInputStream(renomearChaveSecreta);
+
+									sendFile(in, out);
+									//Chave secreta enviada
 
 
-								//Enviar assinatura
-								outStream.writeObject("-se");
+									System.out.println("mySNS: Enviado ficheiro assinado/cifrado, chave secreta e assinatura");
 
-								f = new File(args[i]+".assinatura");
-								f.renameTo(renomearAssinatura);
-
-								outStream.writeObject(renomearAssinatura.getName());
-								outStream.writeObject(String.valueOf(renomearAssinatura.length()));
-
-								in = new FileInputStream(renomearAssinatura);
-
-								sendFile(in, out);
-								//Assinatura enviada
+								}
 
 
-								//Enviar chave secreta
-								outStream.writeObject("-se");
-
-								f = new File(args[i]+".assinado.chave_secreta");
-								f.renameTo(renomearChaveSecreta);
-
-								outStream.writeObject(renomearChaveSecreta.getName());
-								outStream.writeObject(String.valueOf(renomearChaveSecreta.length()));
-
-								in = new FileInputStream(renomearChaveSecreta);
-
-								sendFile(in, out);
-								//Chave secreta enviada
-								
-								//Files.deleteIfExists(Paths.get(args[i]+".assinado.chave_secreta"));
-
-								System.out.println("mySNS: Enviado ficheiro assinado/cifrado, chave secreta e assinatura");
-								
-								//outStream.writeObject("Over and out");
 
 							} else {
 
@@ -951,16 +719,16 @@ public class mySNS {
 						outStream.writeObject("Done");
 						socket.close();
 
-					} else if (/* userCommand.equals("-u") && */ command.equals("-g")) {
+					} else if (command.equals("-g")) {
 
 						System.out.println("mySNS: Comando -g reconhecido.");
 
 						InputStream in = socket.getInputStream();
-						
+
 						boolean askJoaoCert = false;
 
 						for (int i = 7; i < args.length; i++) {
-							
+
 							//askJoaoCert = false;
 
 							try {
@@ -985,6 +753,13 @@ public class mySNS {
 
 									receiveFile(args[i]+".seguro.chave_secreta", in, Integer.valueOf(s));
 
+									//Decifra chave secreta
+									byte[] rcvSecretKey = decrypt(readFileToBytes(args[i]+".seguro.chave_secreta", Integer.valueOf(s)), privateKey);
+									//Chave secreta
+									SecretKey originalKey = new SecretKeySpec(rcvSecretKey, 0, rcvSecretKey.length, "AES");
+									//Decifra ficheiro
+									decryptFile(args[i]+".seguro", originalKey, args[i]+".assinado");
+
 									outStream.writeObject("-g");
 									outStream.writeObject(args[i]+".seguro.assinatura");
 
@@ -994,16 +769,20 @@ public class mySNS {
 									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".seguro.assinatura" + " de " + s + " bytes");
 
 									receiveFile(args[i]+".seguro.assinatura", in, Integer.valueOf(s));
-									
+
+									//Validacao do  ficheiro
+									File assinatura = new File(args[i]+".seguro.assinatura");
+									File assinado = new File(args[i]+".assinado");
+									ReadFileVerifySign(publicKey, File_To_Array(assinatura), File_To_Array(assinado));
 
 								} else {
-									
+
 									System.out.println();
 									System.out.println("mySNS: Ficheiro " + args[i]+".assinado.cifrado não existe no servidor mySNSServer.");
 									System.out.println();
-									
+
 								}
-								
+
 								outStream.writeObject("-g");
 								outStream.writeObject(args[i]+".cifrado");
 
@@ -1024,27 +803,27 @@ public class mySNS {
 									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".chave_secreta." + utente + " de " + s + " bytes");
 
 									receiveFile(args[i]+".chave_secreta."+utente, in, Integer.valueOf(s));
-									
+
 									//Decifra chave secreta
 									byte[] rcvSecretKey = decrypt(readFileToBytes(args[i]+".chave_secreta."+utente, Integer.valueOf(s)), privateKey);
 									//System.out.println(secretKeySTR);
-									
+
 									SecretKey originalKey = new SecretKeySpec(rcvSecretKey, 0, rcvSecretKey.length, "AES");
-									
+
 									decryptFile(args[i]+".cifrado", originalKey, args[i]);
 
 
 								} else {
-									
+
 									System.out.println();
 									System.out.println("mySNS: Ficheiro " + args[i]+".cifrado não existe no servidor mySNSServer.");
 									System.out.println();
-									
+
 								}
-							
+
 								outStream.writeObject("-g");
 								outStream.writeObject(args[i]+".assinado");
-								
+
 								if ((inStream.readObject()).equals("True")) {
 
 									String s = (String) inStream.readObject();
@@ -1062,92 +841,22 @@ public class mySNS {
 									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".assinatura." + medico + " de " + s + " bytes");
 
 									receiveFile(args[i]+".assinatura."+medico, in, Integer.valueOf(s));
-									
+
 									File assinatura = new File(args[i]+".assinatura."+medico);
 									File assinado = new File(args[i]+".assinado");
-									
+
 									ReadFileVerifySign(publicKey, File_To_Array(assinatura), File_To_Array(assinado));
-									
+
 
 								} else {
-									
+
 									System.out.println();
 									System.out.println("mySNS: Ficheiro " + args[i]+".assinado não existe no servidor mySNSServer.");
 									System.out.println();
-									
-								}
-								/*
-								outStream.writeObject("-g");
-								outStream.writeObject(args[i]+".cifrado.joao");
-								
-								if ((inStream.readObject()).equals("True")) {
-
-									String s = (String) inStream.readObject();
-									System.out.println("mySNS: ficheiro " + args[i]+".cifrado.joao" + " existe no servidor.");
-									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".cifrado.joao" + " de " + s + " bytes.");
-
-									receiveFile(args[i]+".cifrado.joao", in, Integer.valueOf(s));
-
-									outStream.writeObject("-g");
-									outStream.writeObject(args[i]+".chave_secreta.joao");
-
-									inStream.readObject();
-
-									s = (String) inStream.readObject();
-									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".chave_secreta.joao" + " de " + s + " bytes");
-
-									receiveFile(args[i]+".chave_secreta.joao", in, Integer.valueOf(s));
-
-									//Decifra chave secreta
-									byte[] rcvSecretKey = decrypt(readFileToBytes(args[i]+".chave_secreta.joao", Integer.valueOf(s)), privateKey);
-									//System.out.println(secretKeySTR);
-
-									SecretKey originalKey = new SecretKeySpec(rcvSecretKey, 0, rcvSecretKey.length, "AES");
-
-									decryptFile(args[i]+".cifrado.joao", originalKey, args[i]);
-
-
-								} else {
-
-									System.out.println();
-									System.out.println("mySNS: Ficheiro " + args[i]+".cifrado.joao não existe no servidor mySNSServer.");
-									System.out.println();
 
 								}
-								
-								
-								outStream.writeObject("-g");
-								outStream.writeObject(args[i]+".assinado.joao");
 
-								if ((inStream.readObject()).equals("True")) {
-									
-									askJoaoCert = true;
 
-									String s = (String) inStream.readObject();
-									System.out.println("mySNS: " + args[i]+".assinado.joao existe no servidor");
-									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".assinado.joao" + " de " + s + " bytes");
-
-									receiveFile(args[i]+".assinado.joao", in, Integer.valueOf(s));
-
-									outStream.writeObject("-g");
-									outStream.writeObject(args[i]+".assinatura.joao");
-
-									inStream.readObject();
-
-									s = (String) inStream.readObject();
-									System.out.println("mySNS: Tamanho do ficheiro " + args[i]+".assinatura.joao" + " de " + s + " bytes");
-
-									receiveFile(args[i]+".assinatura.joao", in, Integer.valueOf(s));
-									
-								} else {
-
-									System.out.println();
-									System.out.println("mySNS: Ficheiro " + args[i]+".assinado.joao não existe no servidor mySNSServer.");
-									System.out.println();
-									askJoaoCert =false;
-
-								}*/
-								
 							} catch (ClassNotFoundException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -1155,130 +864,20 @@ public class mySNS {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							
 
-						} 
-						/*
-						if (askJoaoCert) {
-							
-							for (int i = 7; i < args.length; i++) {
-								
-								File assinatura = new File(args[i]+".assinatura.joao");
-								File assinado = new File(args[i]+".assinado.joao");
-								
-								outStream.writeObject("Over and out");
-								outStream.writeObject("-d");
-								outStream.writeObject("-g");
-								outStream.writeObject("joao");
-								outStream.writeObject("joao.cer");
-								
-								inStream.readObject();
-								
-								String s = (String) inStream.readObject();
-								System.out.println("mySNS: Tamanho do ficheiro " + "joao.cert" + " de " + s + " bytes");
-								
-								receiveFile("joao.cer", in, Integer.valueOf(s));
-								
-								FileInputStream fis = new FileInputStream("joao.cer");
-								CertificateFactory cf = CertificateFactory.getInstance("X.509");
-								Certificate otherUserCert = cf.generateCertificate(fis);
-
-								ReadFileVerifySign(otherUserCert.getPublicKey(), File_To_Array(assinatura), File_To_Array(assinado));
-							}
-							
-						}
-						*/
-						
-						outStream.writeObject("Over and out");
-						outStream.writeObject("Done");
-						socket.close();
-
-					} else if (userCommand.equals("-u") && command.equals("-d")) {
-						
-						System.out.println("mySNS: Comando -d reconhecido.");
-
-						String userDest = args[7];
-						String process = args[8];
-						
-						outStream.writeObject("-d");
-
-						for (int i = 9; i < args.length; i++) {
-
-							System.out.println("File to send: " + args[i]);
-
-							if (process.equals("-c")) {
-								
-								System.out.println("mySNS:    Comando -c reconhecido");
-
-								
-								outStream.writeObject("-d");
-								outStream.writeObject("-g");
-								outStream.writeObject(userDest);
-								String fn = userDest+".cer";
-								outStream.writeObject(fn);
-								
-								System.out.println("mySNS:    Esperando por resposta do servidor");
-								
-								if ((inStream.readObject()).equals("True")) {
-
-									String s = (String) inStream.readObject();
-									System.out.println("mySNS: Tamanho do ficheiro " + userDest+".cert" + " de " + s + " bytes");
-									
-									InputStream in = socket.getInputStream();
-									
-									receiveFile(userDest+".cer", in, Integer.valueOf(s));
-
-								} else {
-
-									System.out.println();
-									System.out.println("mySNS: Ficheiro " + userDest+".cer não existe no servidor mySNSServer.");
-									System.out.println();
-
-								}
-								
-								FileInputStream fis = new FileInputStream(userDest+".cer");
-								CertificateFactory cf = CertificateFactory.getInstance("X.509");
-								Certificate otherUserCert = cf.generateCertificate(fis);
-								
-								outStream.writeObject("Over and out");
-								outStream.writeObject("-d");
-								outStream.writeObject("-c");
-								outStream.writeObject(userDest);
-								
-								//commandC(args[i], username, outStream, socket, sk, otherUserCert.getPublicKey());
-								outStream.writeObject("Over and out.");
-
-							} else if (process.equals("-s")) {
-
-								outStream.writeObject("-d");
-								outStream.writeObject("-s");
-								outStream.writeObject(userDest);
-								//commandS(args[i], username, outStream, socket, privateKey);
-								outStream.writeObject("Over and out.");
-
-							} else if (process.equals("-e")) {
-								
-								outStream.writeObject("-d");
-								outStream.writeObject("-s");
-								outStream.writeObject(userDest);
-								commandE(args[i], outStream, socket, privateKey, sk, publicKey);
-								outStream.writeObject("Over and out.");
-								
-							}
 
 						} 
 
 						outStream.writeObject("Done");
 						socket.close();
 
-					
 					} else {
 
 						System.out.println("mySNS: Comando " + command + " não reconhecido.");
 
 						socket.close();
 					}
-					
+
 				} else {
 					System.out.println("mySNS: Comando " + /* command + */ " não reconhecido.");
 				}
