@@ -535,7 +535,7 @@ public class mySNS {
 
 								if ((inStream.readObject()).equals("False")) {
 
-									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
+									System.out.println("mySNS: Ficheiro cifrado existente no servidor");
 
 								} else {
 
@@ -544,23 +544,36 @@ public class mySNS {
 
 									sendFile(in, out);
 									//Ficheiro cifrado enviado
+									
+									System.out.println("mySNS: Enviado ficheiro cifrado");
 
-									//Enviar chave secreta
-									outStream.writeObject("-sc");
+								}
+								
+								//Enviar chave secreta
+								outStream.writeObject("-sc");
 
-									f = new File(args[i]+".chave_secreta");
-									f.renameTo(renomear);
+								f = new File(args[i]+".chave_secreta");
+								f.renameTo(renomear);
 
-									outStream.writeObject(renomear.getName());
-									outStream.writeObject(String.valueOf(renomear.length()));
+								outStream.writeObject(renomear.getName());
+								outStream.writeObject(String.valueOf(renomear.length()));
+								
+								if ((inStream.readObject()).equals("False")) {
 
+									System.out.println("mySNS: chave secreta existente no servidor");
+
+								} else {
+									
+									InputStream in = new FileInputStream(renomear);
+									OutputStream out = socket.getOutputStream();
+									
 									in = new FileInputStream(renomear);
 
 									sendFile(in, out);
-									//Chave secreta enviada
-
-									System.out.println("mySNS: Enviado ficheiro cifrado, chave secreta");
-
+									//Chave secreta enviada 
+									
+									System.out.println("mySNS: Enviado chave secreta");
+									
 								}
 
 							} else {
@@ -593,7 +606,7 @@ public class mySNS {
 
 								if ((inStream.readObject()).equals("False")) {
 
-									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
+									System.out.println("mySNS: ficheiro assinado existente no servidor");
 
 								} else {
 
@@ -604,22 +617,30 @@ public class mySNS {
 									sendFile(in, out);
 									//Ficheiro assinado enviado
 
+									System.out.println("mySNS: Enviado ficheiro assinado");
+								}
+								
+								//Enviar assinatura
+								outStream.writeObject("-sa");
 
-									//Enviar assinatura
-									outStream.writeObject("-sa");
+								f = new File(args[i]+".assinatura");
+								f.renameTo(renomear);
 
-									f = new File(args[i]+".assinatura");
-									f.renameTo(renomear);
+								outStream.writeObject(renomear.getName());
+								outStream.writeObject(String.valueOf(renomear.length()));
+								
+								if ((inStream.readObject()).equals("False")) {
 
-									outStream.writeObject(renomear.getName());
-									outStream.writeObject(String.valueOf(renomear.length()));
+									System.out.println("mySNS: assinatura existente no servidor");
 
-									in = new FileInputStream(renomear);
+								} else {
+									
+									InputStream in = new FileInputStream(renomear);
+									OutputStream out = socket.getOutputStream();
 
 									sendFile(in, out);
 									//Assinatura enviada
-
-									System.out.println("mySNS: Enviado ficheiro assinado e assinatura");
+									System.out.println("mySNS: Enviado assinatura");
 								}
 
 							} else {
@@ -663,7 +684,7 @@ public class mySNS {
 
 								if ((inStream.readObject()).equals("False")) {
 
-									System.out.println("mySNS: Ficheiro cifrado e chave secreta existente no servidor");
+									System.out.println("mySNS: Ficheiro assinado e cifrado existente no servidor");
 
 								} else {
 
@@ -673,41 +694,63 @@ public class mySNS {
 
 									sendFile(in, out);
 									//Ficheiro assinado/cifrado enviado
+									
+									System.out.println("mySNS: Enviado ficheiro assinado/cifrado");
 
-									//Enviar assinatura
-									outStream.writeObject("-se");
+								}
 
-									f = new File(args[i]+".assinatura");
-									f.renameTo(renomearAssinatura);
+								//Enviar assinatura
+								outStream.writeObject("-se");
 
-									outStream.writeObject(renomearAssinatura.getName());
-									outStream.writeObject(String.valueOf(renomearAssinatura.length()));
+								f = new File(args[i]+".assinatura");
+								f.renameTo(renomearAssinatura);
 
+								outStream.writeObject(renomearAssinatura.getName());
+								outStream.writeObject(String.valueOf(renomearAssinatura.length()));
+								
+								if ((inStream.readObject()).equals("False")) {
+
+									System.out.println("mySNS: assinatura existente no servidor");
+
+								} else {
+									
+									InputStream in = new FileInputStream(renomearSeguro);
+									OutputStream out = socket.getOutputStream();
+									
 									in = new FileInputStream(renomearAssinatura);
 
 									sendFile(in, out);
 									//Assinatura enviada
+									
+									System.out.println("mySNS: Enviado assinatura");
+									
+								}
 
-									//Enviar chave secreta
-									outStream.writeObject("-se");
+								//Enviar chave secreta
+								outStream.writeObject("-se");
 
-									f = new File(args[i]+".assinado.chave_secreta");
-									f.renameTo(renomearChaveSecreta);
+								f = new File(args[i]+".assinado.chave_secreta");
+								f.renameTo(renomearChaveSecreta);
 
-									outStream.writeObject(renomearChaveSecreta.getName());
-									outStream.writeObject(String.valueOf(renomearChaveSecreta.length()));
+								outStream.writeObject(renomearChaveSecreta.getName());
+								outStream.writeObject(String.valueOf(renomearChaveSecreta.length()));
+								
+								if ((inStream.readObject()).equals("False")) {
 
+									System.out.println("mySNS: Chave secreta existente no servidor");
+
+								} else {
+									
+									InputStream in = new FileInputStream(renomearSeguro);
+									OutputStream out = socket.getOutputStream();
 									in = new FileInputStream(renomearChaveSecreta);
 
 									sendFile(in, out);
 									//Chave secreta enviada
-
-
-									System.out.println("mySNS: Enviado ficheiro assinado/cifrado, chave secreta e assinatura");
-
+									
+									System.out.println("mySNS: Enviado chave secreta");
+									
 								}
-
-
 
 							} else {
 

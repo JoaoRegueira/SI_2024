@@ -199,13 +199,14 @@ public class mySNSServer {
 						String fileSize = (String) inStream.readObject();
 						System.out.println("mySNSServer:    tamanho, em bytes, do Ficheiro " + fileSize);
 
-						File cifrado = new File("Servidor/"+userID+"/"+fileName+".cifrado");
-						File chaveSecreta = new File("Servidor/"+userID+"/"+fileName+".chave_secreta."+userID);
+						File cifrado = new File("Servidor/"+userID+"/"+fileName);
+						File chaveSecreta = new File("Servidor/"+userID+"/"+fileName);
 
-						if (!(cifrado.exists() && chaveSecreta.exists())) {
+						if (cifrado.exists() && chaveSecreta.exists()) {
 							System.out.println("mySNSServer: Ficheiro cifrado e respectiva chave secreta existente");
 							outStream.writeObject("False");
 						} else {
+							outStream.writeObject("True");
 							InputStream in = socket.getInputStream();
 							receiveFile(fileName, userID, in, Integer.valueOf(fileSize));
 						}
@@ -223,13 +224,14 @@ public class mySNSServer {
 						String fileSize = (String) inStream.readObject();
 						System.out.println("mySNSServer:    tamanho, em bytes, do Ficheiro " + fileSize);
 
-						File assinado = new File("Servidor/"+userID+"/"+fileName+".assinado");
-						File assinatura = new File("Servidor/"+userID+"/"+fileName+".assinatura."+medico);
+						File assinado = new File("Servidor/"+userID+"/"+fileName);
+						File assinatura = new File("Servidor/"+userID+"/"+fileName);
 
-						if (!(assinado.exists() && assinatura.exists())) {
+						if (assinado.exists() && assinatura.exists()) {
 							System.out.println("mySNSServer: Ficheiro assinado e respectiva assinatura existente");
 							outStream.writeObject("False");
 						} else {
+							outStream.writeObject("True");
 							InputStream in = socket.getInputStream();
 							receiveFile(fileName, userID, in, Integer.valueOf(fileSize));
 						}
@@ -248,14 +250,15 @@ public class mySNSServer {
 						String fileSize = (String) inStream.readObject();
 						System.out.println("mySNSServer:    tamanho, em bytes, do Ficheiro " + fileSize);
 
-						File seguro = new File("Servidor/"+userID+"/"+fileName+".seguro");
-						File seguroAssinatura = new File("Servidor/"+userID+"/"+fileName+".seguro.assinatura");
-						File seguroChaveSecreta = new File("Servidor/"+userID+"/"+fileName+".seguro.chave_secreta");
+						File seguro = new File("Servidor/"+userID+"/"+fileName);
+						File seguroAssinatura = new File("Servidor/"+userID+"/"+fileName);
+						File seguroChaveSecreta = new File("Servidor/"+userID+"/"+fileName);
 
-						if (!(seguro.exists() && seguroAssinatura.exists() && seguroChaveSecreta.exists())) {
+						if (seguro.exists() && seguroAssinatura.exists() && seguroChaveSecreta.exists()) {
 							System.out.println("mySNSServer: Ficheiro assinado e cifrado e respectiva assinatura e chave secreta existente");
 							outStream.writeObject("False");
 						} else {
+							outStream.writeObject("True");
 							InputStream in = socket.getInputStream();
 							receiveFile(fileName, userID, in, Integer.valueOf(fileSize));
 						}
